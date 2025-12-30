@@ -22,4 +22,14 @@
 
 #define PATH_MAX 4096
 
+#define MAX_BG 1024
+
+typedef struct {
+    pid_t pid;
+    char name[256];
+} bg_job;
+
+extern bg_job bg_jobs[MAX_BG];
+extern int bg_count;
+
 #endif

@@ -6,22 +6,38 @@
 void sigchld_handler(int signum) {
     int status;
     pid_t pid;
+
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        if (WIFEXITED(status)) {
-            // Write to stderr or stdout. 
-            // Safe way involves write() and avoiding buffered IO.
-            char msg[1024];
-            int len = snprintf(msg, sizeof(msg), "\n%s with pid %d exited normally\n", "Process", pid);
-            write(STDOUT_FILENO, msg, len);
-            // Re-prompt is tricky in signal handlers, usually skipped or handled by flags.
-            // We will just print the message.
-        } else {
-            char msg[1024];
-            int len = snprintf(msg, sizeof(msg), "\n%s with pid %d exited abnormally\n", "Process", pid);
-            write(STDOUT_FILENO, msg, len);
+
+        char pname[256] = "Process";
+
+        // lookup pid → name
+        for (int i = 0; i < bg_count; i++) {
+            if (bg_jobs[i].pid == pid) {
+                strcpy(pname, bg_jobs[i].name);
+
+                // remove entry (swap with last)
+                bg_jobs[i] = bg_jobs[bg_count - 1];
+                bg_count--;
+                break;
+            }
         }
+
+        char msg[512];
+        int len;
+
+        if (WIFEXITED(status)) {
+            len = snprintf(msg, sizeof(msg),
+                "\n%s exited normally (%d)\n", pname, pid);
+        } else {
+            len = snprintf(msg, sizeof(msg),
+                "\n%s exited abnormally (%d)\n", pname, pid);
+        }
+
+        write(STDOUT_FILENO, msg, len);
     }
 }
+
 
 int main() {
     char home_dir[PATH_MAX];
