@@ -4,3 +4,4 @@ trial.c
 *.out
 trial.txt
 trial_dir/
+.vscode/*

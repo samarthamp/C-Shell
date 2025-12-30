@@ -2,9 +2,10 @@
 #define COMMAND_2_H
 
 /**
- * Parses the input line for ';' and '&' delimiters and executes commands.
- * @param input The raw input string from the user.
+ * Parses input and executes commands.
+ * @param input Raw input line.
+ * @param home_dir Shell's home directory (needed for hop).
  */
-void process_input(char *input);
+void process_input(char *input, char *home_dir);
 
 #endif
