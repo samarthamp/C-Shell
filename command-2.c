@@ -2,11 +2,13 @@
 #include "command-2.h"
 #include "hop-3.h"
 #include "reveal-4.h"
+#include "log-5.h" // Include new header
 
 void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
     char *argv[64];
     int argc = 0;
 
+    // Tokenize
     char *token = strtok(cmd_str, " \t\n");
     while (token != NULL && argc < 63) {
         argv[argc++] = token;
@@ -23,6 +25,11 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
     }
     if (strcmp(argv[0], "reveal") == 0) {
         execute_reveal(argv, home_dir, prev_dir);
+        return;
+    }
+    // NEW: Log command
+    if (strcmp(argv[0], "log") == 0) {
+        execute_log(argv, home_dir, prev_dir);
         return;
     }
 
@@ -49,8 +56,10 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
 }
 
 void process_input(char *input, char *home_dir, char *prev_dir) {
+    // Standard parsing loop (handles ; and &)
     char *ptr = input;
     char *start = input;
+    
     while (*ptr != '\0') {
         if (*ptr == ';' || *ptr == '&') {
             int is_bg = (*ptr == '&');
@@ -60,6 +69,7 @@ void process_input(char *input, char *home_dir, char *prev_dir) {
         }
         ptr++;
     }
+    
     if (*start != '\0') {
         exec_command(start, 0, home_dir, prev_dir);
     }
