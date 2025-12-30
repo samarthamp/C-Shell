@@ -2,7 +2,8 @@
 #include "command-2.h"
 #include "hop-3.h"
 #include "reveal-4.h"
-#include "log-5.h" // Include new header
+#include "log-5.h"
+#include "proclore-7.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -31,9 +32,15 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
         execute_reveal(argv, home_dir, prev_dir);
         return;
     }
-    // NEW: Log command
+    // Log command
     if (strcmp(argv[0], "log") == 0) {
         execute_log(argv, home_dir, prev_dir);
+        return;
+    }
+
+    // Proclore command
+    if (strcmp(argv[0], "proclore") == 0) {
+        execute_proclore(argv, home_dir);
         return;
     }
 
