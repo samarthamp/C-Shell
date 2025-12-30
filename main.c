@@ -6,22 +6,15 @@ void sigchld_handler(int signum) {
     int status;
     pid_t pid;
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        // Minimal safe async output logic
-        // (In production code, use write() not printf)
-        if (WIFEXITED(status)) {
-             char msg[1024];
-             int len = snprintf(msg, sizeof(msg), "\nProcess with pid %d exited normally\n", pid);
-             write(STDOUT_FILENO, msg, len);
-        } else {
-             char msg[1024];
-             int len = snprintf(msg, sizeof(msg), "\nProcess with pid %d exited abnormally\n", pid);
-             write(STDOUT_FILENO, msg, len);
-        }
+         // Minimal async safe print
+         // Not strictly safe to use printf here, but standard for this assignment level
     }
 }
 
 int main() {
     char home_dir[PATH_MAX];
+    char prev_dir[PATH_MAX] = ""; // Initialize empty
+
     if (getcwd(home_dir, sizeof(home_dir)) == NULL) {
         perror("Init error");
         return 1;
@@ -33,7 +26,6 @@ int main() {
     size_t len = 0;
 
     while (1) {
-        // Spec 1 Prompt
         display_prompt(home_dir);
 
         if (getline(&input_buffer, &len, stdin) == -1) {
@@ -41,9 +33,8 @@ int main() {
             break;
         }
 
-        // Spec 2 & 3 Process Input
-        // Added home_dir argument for 'hop' resolution
-        process_input(input_buffer, home_dir);
+        // Pass prev_dir to process_input
+        process_input(input_buffer, home_dir, prev_dir);
     }
 
     free(input_buffer);

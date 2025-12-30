@@ -10,6 +10,15 @@
 #include <pwd.h>
 #include <sys/wait.h> // For waitpid
 #include <signal.h>   // For signal handling
+#include <sys/stat.h> // For stat()
+#include <dirent.h>   // For opendir(), readdir()
+#include <grp.h>      // For getgrgid()
+#include <time.h>     // For strftime()
+
+#define COLOR_GREEN "\033[1;32m"
+#define COLOR_BLUE  "\033[1;34m"
+#define COLOR_WHITE "\033[1;37m"
+#define COLOR_RESET "\033[0m"
 
 #define PATH_MAX 4096
 
