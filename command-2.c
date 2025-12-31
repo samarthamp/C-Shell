@@ -4,6 +4,7 @@
 #include "reveal-4.h"
 #include "log-5.h"
 #include "proclore-7.h"
+#include "seek-8.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -41,6 +42,12 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
     // Proclore command
     if (strcmp(argv[0], "proclore") == 0) {
         execute_proclore(argv, home_dir);
+        return;
+    }
+
+    // Seek command
+    if (strcmp(argv[0], "seek") == 0) {
+        execute_seek(argv, home_dir, prev_dir);
         return;
     }
 
