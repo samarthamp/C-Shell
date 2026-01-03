@@ -38,7 +38,6 @@ void sigchld_handler(int signum) {
     }
 }
 
-
 int main() {
     char home_dir[PATH_MAX];
     char prev_dir[PATH_MAX] = "";
@@ -47,6 +46,9 @@ int main() {
         perror("Init error");
         return 1;
     }
+
+    // --- SPEC 9: Load .myshrc ---
+    load_myshrc(home_dir);
 
     signal(SIGCHLD, sigchld_handler);
 
@@ -61,12 +63,7 @@ int main() {
             break;
         }
 
-        // --- SPECIFICATION 5: LOGGING ---
-        // We log the raw input buffer exactly as entered.
-        // The add_to_log function handles filtering ("log" check) and duplicates.
         add_to_log(input_buffer, home_dir);
-
-        // Process commands
         process_input(input_buffer, home_dir, prev_dir);
     }
 

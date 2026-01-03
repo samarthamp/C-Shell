@@ -5,12 +5,52 @@
 #include "log-5.h"
 #include "proclore-7.h"
 #include "seek-8.h"
+#include "myshrc-9.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
 int bg_count = 0;
 
 void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
+    // 1. Pre-parsing Check for Alias/Functions
+    // We need to look at the first word without modifying cmd_str destructively yet.
+    char temp_cmd[1024];
+    strcpy(temp_cmd, cmd_str);
+    char *first_word = strtok(temp_cmd, " \t\n");
+    
+    if (first_word == NULL) return;
+    // --- CHECK ALIAS ---
+    char *alias_val = get_alias(first_word);
+
+    if (alias_val != NULL) {
+        // Reconstruct command: alias_value + rest of args
+        char new_cmd[1024];
+        strcpy(new_cmd, alias_val);
+        
+        // Find end of first word in ORIGINAL string to get arguments
+        char *args_ptr = cmd_str;
+        while (*args_ptr == ' ' || *args_ptr == '\t') args_ptr++; // skip lead
+        while (*args_ptr != ' ' && *args_ptr != '\t' && *args_ptr != '\0') args_ptr++; // skip word
+        
+        // Append arguments
+        strcat(new_cmd, args_ptr);
+        
+        // RECURSE with new command string (allows alias -> built-in)
+        exec_command(new_cmd, is_bg, home_dir, prev_dir);
+        return;
+    }
+
+    // --- CHECK FUNCTION ---
+    // Extract first argument for function (simple implementation supports $1)
+    // We reuse temp_cmd tokenization
+    char *func_arg = strtok(NULL, " \t\n"); // The second token
+    
+    if (execute_myshrc_function(first_word, func_arg, home_dir, prev_dir)) {
+        return; // Function executed
+    }
+
+    // --- NORMAL EXECUTION (If not alias or function) ---
+
     char *argv[64];
     int argc = 0;
 
