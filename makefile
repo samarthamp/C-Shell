@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -g
 
 # Added signals-14.o
-OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o fgbg-15.o
+OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o fgbg-15.o neonate-16.o
 
 TARGET = myshell
 
@@ -50,6 +50,9 @@ signals-14.o: signals-14.c header.h signals-14.h activities-13.h
 
 fgbg-15.o: fgbg-15.c header.h fgbg-15.h activities-13.h signals-14.h
 	$(CC) $(CFLAGS) -c fgbg-15.c
+
+neonate-16.o: neonate-16.c header.h neonate-16.h
+	$(CC) $(CFLAGS) -c neonate-16.c
 
 clean:
 	rm -f *.o $(TARGET)

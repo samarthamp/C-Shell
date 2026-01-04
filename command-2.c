@@ -10,6 +10,7 @@
 #include "activities-13.h"
 #include "signals-14.h"
 #include "fgbg-15.h"
+#include "neonate-16.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -155,6 +156,12 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
     if (strcmp(argv[0], "bg") == 0) { 
         execute_bg(argv); 
         return; 
+    }
+
+    // neonate
+    if (strcmp(argv[0], "neonate") == 0) {
+        execute_neonate(argv);
+        return;
     }
 
     // --- EXTERNAL ---
