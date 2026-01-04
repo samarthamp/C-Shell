@@ -8,6 +8,7 @@
 #include "myshrc-9.h"
 #include "pipes-11.h"
 #include "activities-13.h"
+#include "signals-14.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -137,6 +138,12 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
         return; 
     }
 
+    // Ping
+    if (strcmp(argv[0], "ping") == 0) {
+        execute_ping(argv);
+        return;
+    }
+
     // --- EXTERNAL ---
     pid_t pid = fork();
     if (pid < 0) {
@@ -144,7 +151,12 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
         return;
     }
     if (pid == 0) {
+        // Child: Reset signals
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTSTP, SIG_DFL);
+        
         if (is_bg) setpgid(0, 0);
+        
         if (execvp(argv[0], argv) == -1) {
             printf("ERROR: '%s' is not a valid command\n", argv[0]);
             exit(EXIT_FAILURE);
@@ -156,8 +168,26 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
             bg_count++;
             printf("[%d] %d\n", 1, pid);
         } else {
+            // SET GLOBAL FOREGROUND PID
+            current_fg_pid = pid;
+            strcpy(current_fg_name, argv[0]);
+
+            // If a child is stopped via Ctrl-Z, waitpid returns.
+            // We need to check HOW it returned.
             int status;
-            waitpid(pid, &status, 0);
+            waitpid(pid, &status, WUNTRACED);
+            
+            // NOTE: If Ctrl-Z was pressed, the signal handler (handle_sigtstp) 
+            // runs first. It sends SIGTSTP to the child.
+            // The child stops. `waitpid` returns.
+            // However, our handler ALREADY added it to activities.
+            // So we don't need double logic here, but we should be careful about race conditions.
+            // To be safe, usually handle_sigtstp does the heavy lifting or main loop does.
+            // In this specific modular design: 
+            // `waitpid` will return when child stops.
+            // The handler logic `handle_sigtstp` executes asynchronously when signal arrives.
+            
+            current_fg_pid = -1;
         }
     }
 }

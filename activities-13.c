@@ -128,3 +128,12 @@ void execute_activities() {
 
     free(list);
 }
+
+void kill_all_processes() {
+    ProcessNode *curr = head;
+    while (curr) {
+        // Send SIGKILL to ensure they die
+        kill(curr->pid, SIGKILL);
+        curr = curr->next;
+    }
+}

@@ -4,6 +4,7 @@
 #include "log-5.h" 
 #include "myshrc-9.h"
 #include "activities-13.h"
+#include "signals-14.h"
 
 void sigchld_handler(int signum) {
     int status;
@@ -36,7 +37,10 @@ int main() {
     // --- SPEC 9: Load .myshrc ---
     load_myshrc(home_dir);
 
+    // --- SETUP SIGNAL HANDLERS ---
     signal(SIGCHLD, sigchld_handler);
+    signal(SIGINT, handle_sigint);   // Ctrl-C
+    signal(SIGTSTP, handle_sigtstp); // Ctrl-Z
 
     char *input_buffer = NULL;
     size_t len = 0;
@@ -45,7 +49,12 @@ int main() {
         display_prompt(home_dir);
 
         if (getline(&input_buffer, &len, stdin) == -1) {
-            printf("\n");
+            // --- CTRL-D Handling ---
+            // getline returns -1 on EOF (Ctrl-D)
+            printf("\nLogging out...\n");
+            
+            // Kill all background processes before exiting
+            kill_all_processes();
             break;
         }
 

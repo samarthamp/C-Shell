@@ -4,6 +4,7 @@
 #include "command-2.h"
 #include "myshrc-9.h"
 #include "activities-13.h"
+#include "signals-14.h"
 
 // Helper to check if a command is a built-in (or alias to one)
 int is_built_in(char *cmd) {
@@ -59,22 +60,22 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
     
     // --- OPTIMIZATION FOR SINGLE BUILT-IN COMMAND ---
     if (num_cmds == 1 && is_built_in(commands[0])) {
-             // Save IO
-             int saved_stdin = dup(STDIN_FILENO);
-             int saved_stdout = dup(STDOUT_FILENO);
+        // Save IO
+        int saved_stdin = dup(STDIN_FILENO);
+        int saved_stdout = dup(STDOUT_FILENO);
 
-             // Handle Redirection
-             if (handle_redirection(commands[0]) == -1) {
-                 restore_io(saved_stdin, saved_stdout);
-                 return;
-             }
+        // Handle Redirection
+        if (handle_redirection(commands[0]) == -1) {
+            restore_io(saved_stdin, saved_stdout);
+            return;
+        }
 
-             // Execute Built-in
-             execute_single_command(commands[0], is_bg, home_dir, prev_dir);
-             
-             // Restore IO
-             restore_io(saved_stdin, saved_stdout);
-             return;
+        // Execute Built-in
+        execute_single_command(commands[0], is_bg, home_dir, prev_dir);
+        
+        // Restore IO
+        restore_io(saved_stdin, saved_stdout);
+        return;
     }
 
     for (int i = 0; i < num_cmds; i++) {
@@ -95,7 +96,11 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
         }
 
         if (pid == 0) {
-            // Child Process
+            // Child: Reset signals to default
+            // Important because parent shell ignores/catches them
+            signal(SIGINT, SIG_DFL);
+            signal(SIGTSTP, SIG_DFL);
+            
             if (is_bg) setpgid(0, 0);
 
             // 1. Wiring Input (from previous pipe)
@@ -134,7 +139,14 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
 
             // Wait only if foreground
             if (!is_bg) {
+                // SET GLOBAL FOREGROUND PID
+                current_fg_pid = pid;
+                strcpy(current_fg_name, commands[i]); // Store name for Ctrl-Z
+
                 waitpid(pid, NULL, 0);
+                
+                // RESET
+                current_fg_pid = -1;
             } else {
                 printf("[%d] %d\n", i+1, pid);
                 // ADD TO PROCESS LIST

@@ -23,4 +23,9 @@ int remove_process(pid_t pid);
  */
 void execute_activities();
 
+/**
+ * Kills all tracked background processes.
+ */
+void kill_all_processes();
+
 #endif
