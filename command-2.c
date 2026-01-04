@@ -7,6 +7,7 @@
 #include "seek-8.h"
 #include "myshrc-9.h"
 #include "pipes-11.h"
+#include "activities-13.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -128,6 +129,12 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
     if (strcmp(argv[0], "seek") == 0) {
         execute_seek(argv, home_dir, prev_dir);
         return;
+    }
+
+    // Activities
+    if (strcmp(argv[0], "activities") == 0) { 
+        execute_activities(); 
+        return; 
     }
 
     // --- EXTERNAL ---

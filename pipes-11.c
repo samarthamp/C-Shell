@@ -1,7 +1,39 @@
 #include "header.h"
 #include "pipes-11.h"
 #include "ioredir-10.h"
-#include "command-2.h" // To call execute_single_command
+#include "command-2.h"
+#include "myshrc-9.h"
+#include "activities-13.h"
+
+// Helper to check if a command is a built-in (or alias to one)
+int is_built_in(char *cmd) {
+    // 1. Check if it's an alias first
+    // We need a non-destructive copy to check the first word
+    char temp[1024];
+    strncpy(temp, cmd, 1023);
+    temp[1023] = '\0';
+    
+    char *first_word = strtok(temp, " \t\n");
+    if (!first_word) return 0;
+
+    char *alias_val = get_alias(first_word);
+    if (alias_val != NULL) {
+        // Recursively check if the alias resolves to a built-in
+        return is_built_in(alias_val);
+    }
+
+    // 2. Check Key Built-ins
+    // These MUST run in parent to affect shell state (hop, seek -e)
+    // or are just standard built-ins.
+    if (strcmp(first_word, "hop") == 0) return 1;
+    if (strcmp(first_word, "reveal") == 0) return 1;
+    if (strcmp(first_word, "log") == 0) return 1;
+    if (strcmp(first_word, "proclore") == 0) return 1;
+    if (strcmp(first_word, "seek") == 0) return 1;
+    if (strcmp(first_word, "activities") == 0) return 1;
+
+    return 0;
+}
 
 void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
     // 1. Split by '|'
@@ -20,6 +52,30 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
     // 2. Execution Loop
     int prev_pipe_fd = -1; // Read end of previous pipe
     int pipe_fd[2];
+    
+    for (int i = 0; i < num_cmds; i++) {
+        commands[i][strcspn(commands[i], "\n")] = 0; // Strip newline
+    }
+    
+    // --- OPTIMIZATION FOR SINGLE BUILT-IN COMMAND ---
+    if (num_cmds == 1 && is_built_in(commands[0])) {
+             // Save IO
+             int saved_stdin = dup(STDIN_FILENO);
+             int saved_stdout = dup(STDOUT_FILENO);
+
+             // Handle Redirection
+             if (handle_redirection(commands[0]) == -1) {
+                 restore_io(saved_stdin, saved_stdout);
+                 return;
+             }
+
+             // Execute Built-in
+             execute_single_command(commands[0], is_bg, home_dir, prev_dir);
+             
+             // Restore IO
+             restore_io(saved_stdin, saved_stdout);
+             return;
+    }
 
     for (int i = 0; i < num_cmds; i++) {
         // Create pipe for all except the last command
@@ -28,46 +84,7 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
                 perror("pipe");
                 return;
             }
-        }
-        
-        commands[i][strcspn(commands[i], "\n")] = 0; // Strip newline
-        
-        // --- OPTIMIZATION FOR SINGLE BUILT-IN COMMAND ---
-        // If there is only 1 command (no pipes) and it is a built-in (hop/cd),
-        // we MUST run it in the parent. Forking would make 'hop' useless.
-        if (num_cmds == 1) {
-            // Save IO
-            int saved_stdin = dup(STDIN_FILENO);
-            int saved_stdout = dup(STDOUT_FILENO);
-
-            // Handle Redirection
-            if (handle_redirection(commands[i]) == -1) {
-                // Restoration handled implicitly by process exiting usually, but here we are in parent
-                restore_io(saved_stdin, saved_stdout);
-                return;
-            }
-
-            // Execute
-            // We need to check if it's external or built-in.
-            // We'll modify execute_single_command to return value? 
-            // Or just let it run. If it's external, execute_single_command currently forks.
-            // We need to change command-2.c to NOT fork if we tell it not to?
-            // Actually, execute_single_command in previous steps handled forking internally.
-            // We need to refactor command-2.c to separate "parsing/builtin check" from "fork/exec".
-            
-            // To keep it modular without rewriting everything:
-            // We will let command-2.c handle the fork for EXTERNAL commands.
-            // But for BUILT-INS, it runs in current process.
-            // So calling execute_single_command(..., is_bg=0, ...) is safe IF it handles builtins in-place.
-            // My previous implementation of command-2.c handled builtins in parent and returned,
-            // and forked only for external. So we are good!
-            
-            execute_single_command(commands[i], is_bg, home_dir, prev_dir);
-            
-            // Restore IO
-            restore_io(saved_stdin, saved_stdout);
-            return;
-        }
+        }        
 
         // --- PIPELINE (Forking required) ---
         pid_t pid = fork();
@@ -100,13 +117,7 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
             }
 
             // 4. Execute
-            // Since we are already in a child (pipeline), checking for built-in vs external doesn't matter much for state,
-            // but we reuse the logic. 
-            // NOTE: 'hop' in a pipe won't affect parent. This is expected behavior.
             execute_single_command(commands[i], 0, home_dir, prev_dir); 
-            
-            // execute_single_command might return if it was a built-in. 
-            // If it was external, it execvp'd.
             exit(0);
         } else {
             // Parent Process
@@ -120,15 +131,14 @@ void execute_pipeline(char *input, int is_bg, char *home_dir, char *prev_dir) {
                 // Save the read end for the next iteration
                 prev_pipe_fd = pipe_fd[0];
             }
-            
-            // Wait behavior:
-            // In a pipeline, we typically wait for all, or just the last one?
-            // Usually shells wait for all.
-            // For simplicity, we can rely on sigchld_handler or wait explicitly.
+
+            // Wait only if foreground
             if (!is_bg) {
                 waitpid(pid, NULL, 0);
             } else {
                 printf("[%d] %d\n", i+1, pid);
+                // ADD TO PROCESS LIST
+                add_process(pid, commands[i]);
             }
         }
     }
