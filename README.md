@@ -30,7 +30,7 @@ make clean
 
 ### **1. Display Requirement (Prompt)**
 
-**Description**
+
 
 Displays a dynamic shell prompt on every input line:
 
@@ -48,7 +48,7 @@ Displays a dynamic shell prompt on every input line:
 
 ### **2. Input Requirements**
 
-**Description**
+
 
 Supports multiple commands separated by:
 
@@ -65,7 +65,7 @@ Supports multiple commands separated by:
 
 ### **3. `hop` — Change Directory**
 
-**Description**
+
 
 Built-in alternative to `cd`. Supports:
 
@@ -84,7 +84,7 @@ Built-in alternative to `cd`. Supports:
 
 ### **4. `reveal` — File Listing**
 
-**Description**
+
 
 Lists directory contents (similar to `ls`).
 
@@ -107,7 +107,7 @@ Lists directory contents (similar to `ls`).
 
 ### **5. `log` — Command History**
 
-**Description**
+
 
 Persistent command history (max **15** entries).
 
@@ -128,7 +128,7 @@ Persistent command history (max **15** entries).
 
 ### **6. External System Commands**
 
-**Description**
+
 
 Executes standard Unix commands (`sleep`, `vim`, `echo`, etc.).
 
@@ -142,7 +142,7 @@ Executes standard Unix commands (`sleep`, `vim`, `echo`, etc.).
 
 ### **7. `proclore` — Process Information**
 
-**Description**
+
 
 Displays detailed information about a process.
 
@@ -156,7 +156,7 @@ Displays detailed information about a process.
 
 ### **8. `seek` — File Search**
 
-**Description**
+
 
 Recursively searches files/directories by name or prefix.
 
@@ -175,7 +175,7 @@ Recursively searches files/directories by name or prefix.
 
 ### **9. `.myshrc` — Shell Configuration**
 
-**Description**
+
 
 Loads aliases and custom functions at startup.
 
@@ -189,7 +189,7 @@ Loads aliases and custom functions at startup.
 
 ### **10. Input / Output Redirection**
 
-**Description**
+
 
 Supports:
 
@@ -207,7 +207,7 @@ Supports:
 
 ### **11. Pipes (`|`)**
 
-**Description**
+
 
 Allows chaining commands using pipes.
 
@@ -221,7 +221,7 @@ Allows chaining commands using pipes.
 
 ### **12. Pipes + Redirection**
 
-**Description**
+
 
 Ensures redirection works correctly inside pipelines.
 
@@ -235,7 +235,7 @@ Ensures redirection works correctly inside pipelines.
 
 ### **13. `activities` — Background Jobs**
 
-**Description**
+
 
 Lists all background processes started by the shell.
 
@@ -265,7 +265,7 @@ Lists all background processes started by the shell.
 
 ### **15. `fg` and `bg`**
 
-**Description**
+
 
 Move processes between foreground and background.
 
@@ -279,7 +279,7 @@ Move processes between foreground and background.
 
 ### **16. `neonate`**
 
-**Description**
+
 
 Prints the most recently created PID every *N* seconds until `x` is pressed.
 
@@ -293,7 +293,7 @@ Prints the most recently created PID every *N* seconds until `x` is pressed.
 
 ### **17. `iMan` — Internet Man Pages**
 
-**Description**
+
 
 Fetches man pages directly from the internet.
 
