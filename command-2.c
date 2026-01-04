@@ -6,12 +6,23 @@
 #include "proclore-7.h"
 #include "seek-8.h"
 #include "myshrc-9.h"
+#include "pipes-11.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
 int bg_count = 0;
 
-void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
+void strip_quotes(char *s) {
+    int len = strlen(s);
+    if (len >= 2 && 
+       ((s[0] == '"' && s[len-1] == '"') ||
+        (s[0] == '\'' && s[len-1] == '\''))) {
+        memmove(s, s + 1, len - 2);
+        s[len - 2] = '\0';
+    }
+}
+
+void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
     // 1. Pre-parsing Check for Alias/Functions
     // We need to look at the first word without modifying cmd_str destructively yet.
     char temp_cmd[1024];
@@ -36,7 +47,7 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
         strcat(new_cmd, args_ptr);
         
         // RECURSE with new command string (allows alias -> built-in)
-        exec_command(new_cmd, is_bg, home_dir, prev_dir);
+        execute_single_command(new_cmd, is_bg, home_dir, prev_dir);
         return;
     }
 
@@ -54,15 +65,43 @@ void exec_command(char *cmd_str, int is_bg, char *home_dir, char *prev_dir) {
     char *argv[64];
     int argc = 0;
 
-    // Tokenize
-    char *token = strtok(cmd_str, " \t\n");
-    while (token != NULL && argc < 63) {
-        argv[argc++] = token;
-        token = strtok(NULL, " \t\n");
+    char *p = cmd_str;
+
+    while (*p) {
+        while (*p == ' ' || *p == '\t')
+            p++;  // skip whitespace
+
+        if (*p == '\0')
+            break;
+
+        if (*p == '"' || *p == '\'') {
+            char quote = *p++;
+            argv[argc++] = p;
+
+            while (*p && *p != quote)
+                p++;
+
+            if (*p)
+                *p++ = '\0';  // terminate token
+        } else {
+            argv[argc++] = p;
+
+            while (*p && *p != ' ' && *p != '\t')
+                p++;
+
+            if (*p)
+                *p++ = '\0';
+        }
     }
+
     argv[argc] = NULL;
 
     if (argc == 0) return;
+
+    // Strip Quotes from arguments
+    for (int i = 0; i < argc; i++) {
+        strip_quotes(argv[i]);
+    }
 
     // --- BUILT-INS ---
     if (strcmp(argv[0], "hop") == 0) {
@@ -125,13 +164,13 @@ void process_input(char *input, char *home_dir, char *prev_dir) {
         if (*ptr == ';' || *ptr == '&') {
             int is_bg = (*ptr == '&');
             *ptr = '\0';
-            exec_command(start, is_bg, home_dir, prev_dir);
+            execute_pipeline(start, is_bg, home_dir, prev_dir);
             start = ptr + 1;
         }
         ptr++;
     }
     
     if (*start != '\0') {
-        exec_command(start, 0, home_dir, prev_dir);
+        execute_pipeline(start, 0, home_dir, prev_dir);
     }
 }

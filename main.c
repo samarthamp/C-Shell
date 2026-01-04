@@ -1,7 +1,8 @@
 #include "header.h"
 #include "prompt-1.h"
 #include "command-2.h"
-#include "log-5.h" // Include log header
+#include "log-5.h" 
+#include "myshrc-9.h"
 
 void sigchld_handler(int signum) {
     int status;
