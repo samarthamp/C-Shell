@@ -15,6 +15,12 @@
 #include <grp.h>      // For getgrgid()
 #include <time.h>     // For strftime()
 #include <fcntl.h> // Added for I/O Redirection
+#include <termios.h>
+
+// Networking Headers for iMan
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_BLUE  "\033[1;34m"

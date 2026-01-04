@@ -1,13 +1,14 @@
 CC = gcc
 CFLAGS = -Wall -g
 
-# Added signals-14.o
-OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o fgbg-15.o neonate-16.o
+OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o fgbg-15.o neonate-16.o iman-17.o
 
 TARGET = myshell
 
+LIBS = -lssl -lcrypto
+
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
 main.o: main.c header.h prompt-1.h command-2.h log-5.h myshrc-9.h activities-13.h signals-14.h
 	$(CC) $(CFLAGS) -c main.c
@@ -53,6 +54,9 @@ fgbg-15.o: fgbg-15.c header.h fgbg-15.h activities-13.h signals-14.h
 
 neonate-16.o: neonate-16.c header.h neonate-16.h
 	$(CC) $(CFLAGS) -c neonate-16.c
+
+iman-17.o: iman-17.c header.h iman-17.h
+	$(CC) $(CFLAGS) -c iman-17.c	
 
 clean:
 	rm -f *.o $(TARGET)
