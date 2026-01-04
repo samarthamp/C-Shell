@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -g
 
 # Added signals-14.o
-OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o
+OBJS = main.o prompt-1.o command-2.o hop-3.o reveal-4.o log-5.o proclore-7.o seek-8.o myshrc-9.o ioredir-10.o pipes-11.o activities-13.o signals-14.o fgbg-15.o
 
 TARGET = myshell
 
@@ -15,7 +15,7 @@ main.o: main.c header.h prompt-1.h command-2.h log-5.h myshrc-9.h activities-13.
 prompt-1.o: prompt-1.c header.h prompt-1.h
 	$(CC) $(CFLAGS) -c prompt-1.c
 
-command-2.o: command-2.c header.h command-2.h hop-3.h reveal-4.h log-5.h proclore-7.h seek-8.h myshrc-9.h pipes-11.h activities-13.h signals-14.h
+command-2.o: command-2.c header.h command-2.h hop-3.h reveal-4.h log-5.h proclore-7.h seek-8.h myshrc-9.h pipes-11.h activities-13.h signals-14.h fgbg-15.h
 	$(CC) $(CFLAGS) -c command-2.c
 
 hop-3.o: hop-3.c header.h hop-3.h
@@ -45,9 +45,11 @@ pipes-11.o: pipes-11.c header.h pipes-11.h ioredir-10.h command-2.h activities-1
 activities-13.o: activities-13.c header.h activities-13.h
 	$(CC) $(CFLAGS) -c activities-13.c
 
-# New rule
 signals-14.o: signals-14.c header.h signals-14.h activities-13.h
 	$(CC) $(CFLAGS) -c signals-14.c
+
+fgbg-15.o: fgbg-15.c header.h fgbg-15.h activities-13.h signals-14.h
+	$(CC) $(CFLAGS) -c fgbg-15.c
 
 clean:
 	rm -f *.o $(TARGET)

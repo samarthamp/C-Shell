@@ -28,4 +28,7 @@ void execute_activities();
  */
 void kill_all_processes();
 
+// Returns 1 if found, 0 otherwise. Copies name to dest.
+int get_process_command(pid_t pid, char *dest);
+
 #endif

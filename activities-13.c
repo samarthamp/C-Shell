@@ -137,3 +137,15 @@ void kill_all_processes() {
         curr = curr->next;
     }
 }
+
+int get_process_command(pid_t pid, char *dest) {
+    ProcessNode *curr = head;
+    while (curr) {
+        if (curr->pid == pid) {
+            strcpy(dest, curr->command);
+            return 1;
+        }
+        curr = curr->next;
+    }
+    return 0;
+}

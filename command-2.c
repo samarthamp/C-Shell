@@ -9,6 +9,7 @@
 #include "pipes-11.h"
 #include "activities-13.h"
 #include "signals-14.h"
+#include "fgbg-15.h"
 
 /* Define exactly once */
 bg_job bg_jobs[MAX_BG];
@@ -142,6 +143,18 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
     if (strcmp(argv[0], "ping") == 0) {
         execute_ping(argv);
         return;
+    }
+
+    // fg
+    if (strcmp(argv[0], "fg") == 0) { 
+        execute_fg(argv); 
+        return; 
+    }
+
+    // bg
+    if (strcmp(argv[0], "bg") == 0) { 
+        execute_bg(argv); 
+        return; 
     }
 
     // --- EXTERNAL ---
