@@ -167,6 +167,7 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
             strcpy(bg_jobs[bg_count].name, argv[0]); // command name
             bg_count++;
             printf("[%d] %d\n", 1, pid);
+            add_process(pid, argv[0]);
         } else {
             // SET GLOBAL FOREGROUND PID
             current_fg_pid = pid;
@@ -177,16 +178,12 @@ void execute_single_command(char *cmd_str, int is_bg, char *home_dir, char *prev
             int status;
             waitpid(pid, &status, WUNTRACED);
             
-            // NOTE: If Ctrl-Z was pressed, the signal handler (handle_sigtstp) 
-            // runs first. It sends SIGTSTP to the child.
-            // The child stops. `waitpid` returns.
-            // However, our handler ALREADY added it to activities.
-            // So we don't need double logic here, but we should be careful about race conditions.
-            // To be safe, usually handle_sigtstp does the heavy lifting or main loop does.
-            // In this specific modular design: 
-            // `waitpid` will return when child stops.
-            // The handler logic `handle_sigtstp` executes asynchronously when signal arrives.
-            
+            // Check if child stopped (Ctrl+Z)
+            if (WIFSTOPPED(status)) {
+                printf("\n[%d] Stopped %s\n", pid, argv[0]);
+                add_process(pid, argv[0]); // Add to activities list
+            }            
+
             current_fg_pid = -1;
         }
     }

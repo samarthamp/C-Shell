@@ -35,27 +35,13 @@ void handle_sigint(int sig) {
         // Pass signal to the foreground child
         kill(current_fg_pid, SIGINT);
     } else {
-        // Shell is foreground: just print a new line and prompt
-        // Note: In a real complex shell, re-printing prompt in handler is unsafe/tricky.
-        // But acceptable here.
         printf("\n");
-        // We rely on the main loop to re-print prompt properly usually, 
-        // or we can just leave it blank.
     }
 }
 
 void handle_sigtstp(int sig) {
     if (current_fg_pid != -1) {
-        // 1. Send Stop Signal
         kill(current_fg_pid, SIGTSTP);
-        
-        // 2. Add to background activities list
-        add_process(current_fg_pid, current_fg_name);
-        
-        // 3. Reset foreground tracking (Shell takes back control)
-        // (The PID is technically still alive but stopped in background)
-        printf("\n[%d] Stopped %s\n", current_fg_pid, current_fg_name);
-        current_fg_pid = -1;
     } else {
         // Do nothing if no foreground process
         printf("\n");

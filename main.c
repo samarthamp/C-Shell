@@ -9,16 +9,15 @@
 void sigchld_handler(int signum) {
     int status;
     pid_t pid;
-
-    // WNOHANG: Return immediately if no child has exited
+    // WNOHANG only returns terminated children (unless WUNTRACED is used, which we DON'T use here).
+    // So stopped children are naturally ignored by this loop, which is correct.
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         if (WIFEXITED(status) || WIFSIGNALED(status)) {
-            // Check if process was in our background list
-            // If remove_process returns 1, it was a tracked background process
             if (remove_process(pid)) {
                  char msg[1024];
-                 int len = snprintf(msg, sizeof(msg), "\n%s with pid %d exited %s\n", 
-                                    "Process", pid, WIFEXITED(status) ? "normally" : "abnormally");
+                 // Clean formatting
+                 int len = snprintf(msg, sizeof(msg), "\nProcess %d exited %s\n", 
+                                    pid, WIFEXITED(status) ? "normally" : "abnormally");
                  write(STDOUT_FILENO, msg, len);
             }
         }
